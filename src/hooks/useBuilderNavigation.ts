@@ -46,6 +46,16 @@ export function useBuilderNavigation(activeSections: ResumeSectionKey[]) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!e.ctrlKey && !e.metaKey) return
+
+      const active = document.activeElement as HTMLElement
+      const isInputFocused =
+        active.tagName === 'INPUT' ||
+        active.tagName === 'TEXTAREA' ||
+        active.tagName === 'SELECT' ||
+        active.isContentEditable
+
+      if (isInputFocused) return
+
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         goNext()
