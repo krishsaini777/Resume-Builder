@@ -156,3 +156,18 @@
     text-wrap: balance;
   }
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.pdf-page-break-avoid {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.pdf-page-break-before {
+  page-break-before: always;
+  break-before: page;
+}

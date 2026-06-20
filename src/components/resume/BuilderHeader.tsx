@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useResume } from '@/hooks/useResume'
+import { useExport } from '@/hooks/useExport'
 import { ROUTES } from '@/constants'
 import Button from '@/components/Button'
 import Modal from '@/components/Modal'
@@ -17,6 +18,7 @@ export default function BuilderHeader({ resumeId, progress }: Props) {
   const [title, setTitle] = useState(activeResume?.title ?? '')
   const [showReset, setShowReset] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const { exportResume, isExporting } = useExport(resumeId, activeResume?.title ?? 'Resume')
 
   useEffect(() => {
     if (activeResume) {
@@ -117,6 +119,16 @@ export default function BuilderHeader({ resumeId, progress }: Props) {
           >
             Reset
           </Button>
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={exportResume}
+            disabled={isExporting}
+            leftIcon={isExporting ? <ExportSpinner /> : <DownloadIcon />}
+          >
+            {isExporting ? 'Exporting…' : 'Download PDF'}
+          </Button>
         </div>
       </header>
 
@@ -159,6 +171,47 @@ function ArrowLeftIcon() {
     >
       <path d="M19 12H5" />
       <path d="M12 19l-7-7 7-7" />
+    </svg>
+  )
+}
+
+function DownloadIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  )
+}
+
+function ExportSpinner() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      style={{ animation: 'spin 0.8s linear infinite' }}
+    >
+      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
     </svg>
   )
 }
