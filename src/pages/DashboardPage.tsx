@@ -8,6 +8,11 @@ import Button from '@/components/Button'
 import Card from '@/components/Card'
 import Modal from '@/components/Modal'
 import Input from '@/components/Input'
+import { getTemplate } from '@/templates/registry-utils'
+import type { Resume } from '@/types/resume'
+import { MOCK_RESUME } from '@/utils/mock-resume'
+
+
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
@@ -48,56 +53,46 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
 }
 
 type ResumeCardProps = {
-  id: string
-  title: string
-  template: string
-  updatedAt: string
+  resume: Resume
   onDuplicate: (id: string) => void
   onDelete: (id: string) => void
 }
 
-function ResumeCard({ id, title, template, updatedAt, onDuplicate, onDelete }: ResumeCardProps) {
+function ResumeCard({ resume, onDuplicate, onDelete }: ResumeCardProps) {
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  }).format(new Date(updatedAt))
+  }).format(new Date(resume.updatedAt))
+
+  const TemplateComponent = getTemplate(resume.templateId as TemplateId).component
 
   return (
     <Card hover className="group flex flex-col gap-4">
-      <Link to={ROUTES.EDITOR(id)} className="block">
-        <div className="w-full h-36 rounded-lg bg-gradient-to-br from-primary-950/60 to-secondary-950/60 border border-neutral-700/40 flex-col-center gap-2 text-neutral-600 group-hover:border-primary-500/20 transition-colors duration-200">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1}
-            stroke="currentColor"
-            className="w-12 h-12 opacity-40"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-            />
-          </svg>
-          <span className="text-xs capitalize opacity-60">{template}</span>
+      <Link to={ROUTES.EDITOR(resume.id)} className="block">
+        <div className="w-full h-44 rounded-lg bg-neutral-900 overflow-hidden relative border border-neutral-700/40 group-hover:border-primary-500/20 transition-colors duration-200">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[794px] h-[1123px] origin-top scale-[0.20] pointer-events-none bg-white">
+            <TemplateComponent resume={resume} />
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+            <span className="text-xs font-medium text-white/90 capitalize drop-shadow-md">{resume.templateId}</span>
+          </div>
         </div>
       </Link>
       <div className="flex-between gap-2">
         <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-neutral-100 truncate">{title}</h3>
+          <h3 className="text-sm font-semibold text-neutral-100 truncate">{resume.title}</h3>
           <p className="text-xs text-neutral-500 mt-0.5">Updated {formattedDate}</p>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <Link to={ROUTES.EDITOR(id)}>
-            <Button id={`edit-resume-${id}`} variant="secondary" size="sm">
+          <Link to={ROUTES.EDITOR(resume.id)}>
+            <Button id={`edit-resume-${resume.id}`} variant="secondary" size="sm">
               Edit
             </Button>
           </Link>
           <button
             type="button"
-            onClick={() => { onDuplicate(id) }}
+            onClick={() => { onDuplicate(resume.id) }}
             className="p-1.5 rounded-md text-neutral-500 hover:text-primary-400 hover:bg-primary-500/10 transition-colors opacity-0 group-hover:opacity-100"
             aria-label="Duplicate resume"
             title="Duplicate"
@@ -106,7 +101,7 @@ function ResumeCard({ id, title, template, updatedAt, onDuplicate, onDelete }: R
           </button>
           <button
             type="button"
-            onClick={() => { onDelete(id) }}
+            onClick={() => { onDelete(resume.id) }}
             className="p-1.5 rounded-md text-neutral-500 hover:text-danger-400 hover:bg-danger-500/10 transition-colors opacity-0 group-hover:opacity-100"
             aria-label="Delete resume"
             title="Delete"
@@ -219,10 +214,7 @@ export default function DashboardPage() {
             {resumes.map((resume) => (
               <ResumeCard
                 key={resume.id}
-                id={resume.id}
-                title={resume.title}
-                template={resume.templateId}
-                updatedAt={resume.updatedAt}
+                resume={resume}
                 onDuplicate={handleDuplicate}
                 onDelete={(id) => { setDeleteId(id) }}
               />
@@ -235,7 +227,7 @@ export default function DashboardPage() {
         isOpen={showCreate}
         onClose={() => { setShowCreate(false) }}
         title="Create New Resume"
-        size="md"
+        size="lg"
       >
         <div className="flex flex-col gap-5">
           <Input
@@ -253,31 +245,34 @@ export default function DashboardPage() {
 
           <div className="flex flex-col gap-2">
             <span className="label-base">Template</span>
-            <div className="grid grid-cols-3 gap-2">
-              {TEMPLATE_IDS.map((tpl) => (
-                <button
-                  key={tpl}
-                  type="button"
-                  onClick={() => { setSelectedTemplate(tpl) }}
-                  className={[
-                    'flex flex-col items-center gap-2 p-3 rounded-lg border transition-all duration-200 capitalize text-xs font-medium',
-                    selectedTemplate === tpl
-                      ? 'border-primary-500/60 bg-primary-500/10 text-primary-300 shadow-glow-sm'
-                      : 'border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:border-neutral-600 hover:text-neutral-300',
-                  ].join(' ')}
-                >
-                  <div className="w-full h-12 rounded bg-gradient-to-br from-neutral-700/50 to-neutral-800/50 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-5 h-5 opacity-50">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                    </svg>
-                  </div>
-                  {tpl}
-                </button>
-              ))}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+              {TEMPLATE_IDS.map((tpl) => {
+                const TemplateComponent = getTemplate(tpl).component
+                return (
+                  <button
+                    key={tpl}
+                    type="button"
+                    onClick={() => { setSelectedTemplate(tpl) }}
+                    className={[
+                      'flex flex-col items-center gap-2 p-2 rounded-lg border transition-all duration-200 capitalize text-xs font-medium group',
+                      selectedTemplate === tpl
+                        ? 'border-primary-500/80 bg-primary-500/10 text-primary-300 shadow-glow-sm ring-1 ring-primary-500/50'
+                        : 'border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:border-neutral-500 hover:text-neutral-200 hover:bg-neutral-800/80',
+                    ].join(' ')}
+                  >
+                    <div className="w-full h-32 rounded bg-neutral-900 overflow-hidden relative border border-neutral-700/50 group-hover:border-neutral-500/50 transition-colors">
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[794px] h-[1123px] origin-top scale-[0.15] pointer-events-none bg-white">
+                        <TemplateComponent resume={{ ...MOCK_RESUME, templateId: tpl }} />
+                      </div>
+                    </div>
+                    <span className="mt-1">{tpl}</span>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-4 border-t border-neutral-800 mt-2">
             <Button variant="ghost" size="md" onClick={() => { setShowCreate(false) }}>
               Cancel
             </Button>

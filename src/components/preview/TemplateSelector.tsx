@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { listTemplates } from '@/templates'
 import { useResumeStore } from '@/store/resumeStore'
 import type { TemplateId } from '@/constants'
+import { MOCK_RESUME } from '@/utils/mock-resume'
 
 type Props = {
   resumeId: string
@@ -61,22 +62,9 @@ export default function TemplateSelector({ resumeId, activeTemplateId }: Props) 
                   : 'bg-neutral-900 hover:bg-neutral-800 ring-1 ring-neutral-800 hover:ring-neutral-700'
               }`}
             >
-              <div
-                className="w-full aspect-[210/297] rounded-sm"
-                style={{
-                  background: `linear-gradient(135deg, ${t.meta.previewColor} 0%, ${t.meta.previewColor}99 50%, ${t.meta.previewColor}55 100%)`,
-                }}
-              >
-                <div className="h-full w-full flex flex-col justify-between p-2">
-                  <div className="space-y-1">
-                    <div className="h-1.5 w-3/4 rounded-full bg-white/30" />
-                    <div className="h-1 w-1/2 rounded-full bg-white/20" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="h-0.5 w-full rounded-full bg-white/15" />
-                    <div className="h-0.5 w-4/5 rounded-full bg-white/15" />
-                    <div className="h-0.5 w-3/5 rounded-full bg-white/10" />
-                  </div>
+              <div className="w-full aspect-[210/297] rounded-sm bg-neutral-900 overflow-hidden relative border border-neutral-700/50 group-hover:border-neutral-500/50 transition-colors">
+                <div className="absolute top-0 left-1/2 w-[794px] h-[1123px] origin-top pointer-events-none bg-white" style={{ transform: 'translateX(-50%) scale(0.08)' }}>
+                  <t.component resume={{ ...MOCK_RESUME, templateId: t.meta.id as TemplateId }} />
                 </div>
               </div>
               <span

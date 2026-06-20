@@ -157,7 +157,8 @@ export default function ResumePreview({ resumeId }: Props) {
                   minHeight: A4_MIN_HEIGHT_PX,
                   transform: `scale(${scale})`,
                   transformOrigin: 'top left',
-                }}
+                  '--scale': scale,
+                } as React.CSSProperties}
               >
                 {preview.isEmpty ? (
                   <PreviewEmptyState />

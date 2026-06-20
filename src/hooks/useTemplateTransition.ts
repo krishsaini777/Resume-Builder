@@ -5,31 +5,33 @@ type TransitionState = 'idle' | 'leaving' | 'entering'
 export function useTemplateTransition(templateId: string) {
   const [transitionState, setTransitionState] = useState<TransitionState>('idle')
   const [displayedTemplateId, setDisplayedTemplateId] = useState(templateId)
-  const pendingId = useRef<string>(templateId)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastTemplateId = useRef<string>(templateId)
+  const timer1 = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timer2 = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    if (templateId === displayedTemplateId) return
+    if (templateId === lastTemplateId.current) return
+    lastTemplateId.current = templateId
 
-    pendingId.current = templateId
-
-    if (timerRef.current) clearTimeout(timerRef.current)
+    if (timer1.current) clearTimeout(timer1.current)
+    if (timer2.current) clearTimeout(timer2.current)
 
     setTransitionState('leaving')
 
-    timerRef.current = setTimeout(() => {
-      setDisplayedTemplateId(pendingId.current)
+    timer1.current = setTimeout(() => {
+      setDisplayedTemplateId(templateId)
       setTransitionState('entering')
 
-      timerRef.current = setTimeout(() => {
+      timer2.current = setTimeout(() => {
         setTransitionState('idle')
       }, 250)
     }, 180)
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
+      if (timer1.current) clearTimeout(timer1.current)
+      if (timer2.current) clearTimeout(timer2.current)
     }
-  }, [templateId, displayedTemplateId])
+  }, [templateId])
 
   return {
     displayedTemplateId,
